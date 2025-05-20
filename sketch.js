@@ -13,12 +13,15 @@ function preload() {
 
 function setup() {
   let w = min(windowWidth, windowHeight);
+  cellSize = w / cols;
   renderer = createCanvas(w, w, SVG);
   frameRate(1); // 每秒刷新一次，或用按键控制
   shuffleAndDraw();
 }
 
+
 function windowResized() {
+  // 简化处理：页面刷新以重新布局
   let w = min(windowWidth, windowHeight);
   resizeCanvas(w, w);
   shuffleAndDraw();
@@ -30,10 +33,12 @@ function draw() {
 
 function keyPressed() {
   if (key === ' ') {
+    clearImages();
     shuffleAndDraw();
     save("poster.svg");
   }
 }
+
 
 function shuffleAndDraw() {
   clear();
@@ -54,7 +59,7 @@ function shuffleAndDraw() {
 
       if (isBig) {
         drawSVG(shuffled[idx % shuffled.length], x * cellSize, y * cellSize, cellSize * 2);
-        idx++;
+       idx++;
         x++; // skip next col
       } else {
         drawSVG(shuffled[idx % shuffled.length], x * cellSize, y * cellSize, cellSize);

@@ -1,51 +1,34 @@
 let svgs1 = [];
 let svgs2 = [];
-let totalToLoad = 0;
-let totalLoaded = 0;
-
 let G;
 let buff;
 let gridDivsX = 5; // gridDivsX 和 gridDivsY 是网格的横纵分割数
 let gridDivsY = 7;
-let gSX, gSY, pad = 5; //只把 pad 初始化为 10
+let gSX, gSY, pad = 5; //只把 pad 初始化为 5
 
 function preload() {
-  let svgs1Paths = [
-    'svgs/2.svg',
-    'svgs/4.svg',
-    'svgs/5.svg',
-    'svgs/6.svg',
-    'svgs/7.svg',
-    'svgs/8.svg',
-    'svgs/9.svg',
-    'svgs/10.svg',
-    'svgs/14.svg',
-    'svgs/15.svg',
+  // 加载 1x1 的 SVG 图块
+  svgs1 = [
+    loadShape('svgs/2.svg'),
+    loadShape('svgs/4.svg'),
+    loadShape('svgs/5.svg'),
+    loadShape('svgs/6.svg'),
+    loadShape('svgs/7.svg'),
+    loadShape('svgs/8.svg'),
+    loadShape('svgs/9.svg'),
+    loadShape('svgs/10.svg'),
+    loadShape('svgs/14.svg'),
+    loadShape('svgs/15.svg'),
   ];
 
-  let svgs2Paths = [
-    'svgs/1.svg',
-    'svgs/3.svg',
-    'svgs/11.svg',
-    'svgs/12.svg',
-    'svgs/13.svg',
+  // 加载 2x2 的 SVG 图块
+  svgs2 = [
+    loadShape('svgs/1.svg'),
+    loadShape('svgs/3.svg'),
+    loadShape('svgs/11.svg'),
+    loadShape('svgs/12.svg'),
+    loadShape('svgs/13.svg'),
   ];
-
-  totalToLoad = svgs1Paths.length + svgs2Paths.length;
-
-  svgs1Paths.forEach(path => {
-    loadImage(path, img => {
-      svgs1.push(img);
-      totalLoaded++;
-    });
-  });
-
-  svgs2Paths.forEach(path => {
-    loadImage(path, img => {
-      svgs2.push(img);
-      totalLoaded++;
-    });
-  });
 }
 
 function setup() {
@@ -72,19 +55,13 @@ function setup() {
 
 function draw() {
   // 防止资源未加载时出错
-  if (totalLoaded < totalToLoad || !G) {
-    background(255);
-    fill(100);
-    textSize(32);
-    text('Loading...', 50, 50);
-    return;
-  }
+  if (svgs1.length === 0 || svgs2.length === 0 || !G) return;
 
   background(255);
 
   for (let n = 0; n < G.rectInfo.length; n++) {
     let R = G.rectInfo[n]; //G一个数组，存储所有生成的矩形块的位置与尺寸
-                            //R是要绘制的矩形
+    //R是要绘制的矩形
     // 如果这个矩形跨越多个格子（也就是尺寸大于 1x1）
     // 我们就从 2x2 的 SVG 图块中随机选一个
     // 否则就从 1x1 的图块中选一个
@@ -96,13 +73,17 @@ function draw() {
     }
 
     // 计算这个图块的绘制位置和尺寸
-    var x = R.posX * gSX + pad;   // X 位置：网格坐标 * 单格宽度(gSX) + 内边距(pad)
-    var y = R.posY * gSY + pad;   // Y 位置：网格坐标 * 单格高度(gSY) + 内边距(pad)
-    var wid = R.dimX * gSX;       // 宽度：跨多少格 * 单格宽度
-    var hei = R.dimY * gSY;       // 高度
+    var x = R.posX * gSX + pad; // X 位置：网格坐标 * 单格宽度(gSX) + 内边距(pad)
+    var y = R.posY * gSY + pad; // Y 位置：网格坐标 * 单格高度(gSY) + 内边距(pad)
+    var wid = R.dimX * gSX; // 宽度：跨多少格 * 单格宽度
+    var hei = R.dimY * gSY; // 高度
 
     // 在图形缓冲区上绘制这个 SVG 图块
-    buff.image(randSvg, x, y, wid, hei);
+    buff.push();
+    buff.translate(x, y);
+    buff.scale(wid / randSvg.width, hei / randSvg.height);
+    buff.shape(randSvg, 0, 0);
+    buff.pop();
   }
 
   // 显示到主画布
@@ -115,8 +96,8 @@ function draw() {
 function makeGrid(xCount, yCount) {
   this.gridW = xCount; // 网格宽度（列数）
   this.gridH = yCount; // 网格高度（行数）
-  this.boolGrid = [];  // 布尔网格，记录哪些格子已经被使用
-  this.rectInfo = [];  // 存储已放置图块的信息（位置+尺寸）
+  this.boolGrid = []; // 布尔网格，记录哪些格子已经被使用
+  this.rectInfo = []; // 存储已放置图块的信息（位置+尺寸）
 
   // 初始化布尔网格（全部为 true 表示可用）
   this.setupGrid = function () {
@@ -133,7 +114,6 @@ function makeGrid(xCount, yCount) {
   this.populateGrid = function () {
     for (let x = 0; x < this.gridW; x++) {
       for (let y = 0; y < this.gridH; y++) {
-
         // 如果这个格子已被占用，跳过
         if (!this.boolGrid[x][y]) continue;
 
@@ -176,5 +156,9 @@ function makeGrid(xCount, yCount) {
 function keyPressed() {
   if (key === 's') {
     save(buff, 'poster.svg');
+  } else if (key === 'r') {
+    G.setupGrid();
+    G.populateGrid();
+    redraw();
   }
 }

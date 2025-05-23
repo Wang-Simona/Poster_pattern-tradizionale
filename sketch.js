@@ -11,15 +11,38 @@ let gridDivsX = 5; // gridDivsX 和 gridDivsY 是网格的横纵分割数
 let gridDivsY = 7;
 let gSX, gSY, pad = 5; //只把 pad 初始化为 10
 
+<<<<<<< Updated upstream
 function preload() {
   // 留空，不能使用异步函数 loadXML
+=======
+
+function preload() {
+  loadSVGSet(svgPaths1, svgs1);
+  loadSVGSet(svgPaths2, svgs2);
+}
+
+function loadSVGSet(paths, targetArray) {
+  for (let i = 0; i < paths.length; i++) {
+    loadXML(paths[i], xml => {
+      let svgStr = new XMLSerializer().serializeToString(xml.documentElement);
+      targetArray.push(svgStr);
+      totalLoaded++;
+      if (totalLoaded === totalToLoad) {
+        setup();
+        redraw();
+      }
+    });
+  }
+>>>>>>> Stashed changes
 }
 
 function setup() {
-    //createCanvas(2480, 3508, SVG);  // 第三个参数指定使用 SVG 模式
-    createCanvas(595, 842, SVG);
-    buff = createGraphics(width, height, SVG); // 注意：如果你打算导出 SVG，就需要这个缓冲区也用 SVG 渲染器
+  createCanvas(595, 842, SVG);
+  buff = createGraphics(width, height, SVG); // 注意：如果你打算导出 SVG，就需要这个缓冲区也用 SVG 渲染器
+  buff.clear();
+  noLoop();
 
+<<<<<<< Updated upstream
     buff.background(255);
 
     // 计算单格尺寸
@@ -79,11 +102,22 @@ function modifySVG(xml) {
 function colorFlipper(col) {
   // 示例色彩映射
   return '#ff5555'; // 可扩展为条件判断、映射表等
+=======
+  // 计算单格尺寸
+  gSX = (width - 2 * pad) / gridDivsX;
+  gSY = (height - 2 * pad) / gridDivsY;
+
+  // 创建网格处理器
+  G = new makeGrid(gridDivsX, gridDivsY);
+  G.setupGrid();
+  G.populateGrid();
+>>>>>>> Stashed changes
 }
 
+
 function draw() {
-  // 防止资源未加载时出错
   if (svgs1.length === 0 || svgs2.length === 0 || !G) return;
+<<<<<<< Updated upstream
   console.log("draw 被调用");
   background(255);
   buff.background(255);
@@ -112,17 +146,54 @@ function draw() {
   }
 
   // 显示到主画布
+=======
+
+  buff.clear();
+
+  for (let n = 0; n < G.rectInfo.length; n++) {
+    let R = G.rectInfo[n];
+    let randSvgStr;
+
+    if (R.dimX > 1) {
+      randSvgStr = random(svgs2);
+    } else {
+      randSvgStr = random(svgs1);
+    }
+
+    let x = R.posX * gSX + pad;
+    let y = R.posY * gSY + pad;
+    let wid = R.dimX * gSX;
+    let hei = R.dimY * gSY;
+
+    let div = createDiv(randSvgStr);
+    div.style('position', 'absolute');
+    div.style('left', '-9999px');
+    document.body.appendChild(div.elt);
+
+    let svgElem = div.elt.querySelector("svg");
+    svgElem.setAttribute("width", wid);
+    svgElem.setAttribute("height", hei);
+
+    buff.drawingContext.drawSvg(randSvgStr, x, y, wid, hei);
+
+    div.remove();
+  }
+
+>>>>>>> Stashed changes
   image(buff, 0, 0);
 }
 
-// makeGrid 函数
-function makeGrid(xCount, yCount) {
-  this.gridW = xCount; // 网格宽度（列数）
-  this.gridH = yCount; // 网格高度（行数）
-  this.boolGrid = [];  // 布尔网格，记录哪些格子已经被使用
-  this.rectInfo = [];  // 存储已放置图块的信息（位置+尺寸）
 
+<<<<<<< Updated upstream
   // 初始化布尔网格（全部为 true 表示可用）
+=======
+function makeGrid(xCount, yCount) {
+  this.gridW = xCount;
+  this.gridH = yCount;
+  this.boolGrid = [];
+  this.rectInfo = [];
+
+>>>>>>> Stashed changes
   this.setupGrid = function () {
     for (let x = 0; x < this.gridW; x++) {
       let col = [];
@@ -133,18 +204,14 @@ function makeGrid(xCount, yCount) {
     }
   };
 
-  // 使用不重叠策略填充 1x1 或 2x2 的块
   this.populateGrid = function () {
     for (let x = 0; x < this.gridW; x++) {
       for (let y = 0; y < this.gridH; y++) {
-
-        // 如果这个格子已被占用，跳过
         if (!this.boolGrid[x][y]) continue;
 
         let dimX = 1;
         let dimY = 1;
 
-        // 50% 概率尝试放置 2x2
         if (random() > 0.5) {
           if (
             x < this.gridW - 1 &&
@@ -158,14 +225,12 @@ function makeGrid(xCount, yCount) {
           }
         }
 
-        // 标记占用
         for (let i = x; i < x + dimX; i++) {
           for (let j = y; j < y + dimY; j++) {
             this.boolGrid[i][j] = false;
           }
         }
 
-        // 保存矩形信息
         this.rectInfo.push({
           posX: x,
           posY: y,
